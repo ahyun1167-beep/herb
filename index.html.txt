@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기승능력인증 OX 퀴즈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-primary {
+            background-color: #4F46E5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338CA;
+        }
+        .btn-level {
+            background-color: #f3f4f6;
+            color: #1f2937;
+            font-size: 1.25rem;
+            padding: 2rem;
+        }
+        .btn-level:hover {
+            background-color: #e5e7eb;
+        }
+        .btn-ox {
+            font-size: 3rem;
+            width: 10rem;
+            height: 10rem;
+            border: 4px solid;
+        }
+        .btn-o {
+            color: #1D4ED8;
+            border-color: #1D4ED8;
+        }
+        .btn-o:hover {
+            background-color: #DBEAFE;
+        }
+        .btn-x {
+            color: #DC2626;
+            border-color: #DC2626;
+        }
+        .btn-x:hover {
+            background-color: #FEE2E2;
+        }
+        #result-popup {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-2xl mx-auto">
+        
+        <!-- 레벨 선택 화면 -->
+        <div id="level-selection" class="card text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">기승능력인증 OX 퀴즈</h1>
+            <p class="text-gray-600 mb-8">도전할 급수를 선택해주세요.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <button onclick="startQuiz(7)" class="btn btn-level">🐴 7급 문제</button>
+                <button onclick="startQuiz(6)" class="btn btn-level">🐎 6급 문제</button>
+            </div>
+        </div>
+
+        <!-- 퀴즈 화면 -->
+        <div id="quiz-screen" class="hidden card">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="quiz-title" class="text-2xl font-bold text-indigo-700"></h2>
+                <p id="progress-text" class="text-lg font-semibold text-gray-600"></p>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-xl min-h-[150px] flex items-center justify-center mb-8">
+                <p id="question-text" class="text-2xl text-center font-medium text-gray-800"></p>
+            </div>
+
+            <div id="answer-buttons" class="flex justify-center items-center gap-8">
+                <button onclick="checkAnswer(true)" class="btn btn-ox btn-o">O</button>
+                <button onclick="checkAnswer(false)" class="btn btn-ox btn-x">X</button>
+            </div>
+
+            <div id="result-popup" class="hidden mt-8 text-center">
+                <div id="result-feedback" class="p-4 rounded-lg mb-4 text-2xl font-bold"></div>
+                <div id="explanation-box" class="hidden bg-blue-50 p-4 rounded-lg text-left">
+                    <h3 class="font-bold text-blue-800 mb-2">💡 해설</h3>
+                    <p id="explanation-text" class="text-gray-700"></p>
+                </div>
+                <button id="next-button" onclick="nextQuestion()" class="btn btn-primary w-full mt-6">다음 문제</button>
+            </div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="result-screen" class="hidden card text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">퀴즈 완료!</h1>
+            <div id="score-text" class="text-2xl text-indigo-600 font-semibold mb-8"></div>
+            <div id="trophy" class="text-8xl mb-8"></div>
+            <button onclick="restart()" class="btn btn-primary w-full">처음으로</button>
+        </div>
+
+    </div>
+
+    <script>
+        const quizData = {
+            7: [
+                { question: "마사에서는 큰소리로 떠들거나 뛰지 말아야 한다.", answer: true, explanation: "말이 놀라지 않도록 마사에서는 조용히 행동해야 합니다. (7급 p.20)" },
+                { question: "말은 초식동물로 겁이 많아 소리와 냄새에 민감하다.", answer: true, explanation: "말은 자신을 보호하기 위해 소리와 냄새에 민감한 특성을 가집니다. (7급 p.26)" },
+                { question: "말이 기승자에게 집중하고, 무언가에 흥미를 느낄 때는 귀가 뒤로 접혀 있다.", answer: false, explanation: "말이 흥미를 느낄 때는 귀가 앞으로 향합니다. 귀를 뒤로 젖히는 것은 기분이 좋지 않을 때의 표현입니다. (7급 p.27-28)" },
+                { question: "말은 기분이 좋을 때 꼬리를 흔들고 앞발로 땅을 긁는다.", answer: false, explanation: "기분이 좋거나 흥분했을 때는 꼬리를 번쩍 올립니다. 앞발로 땅을 긁는 것은 배고프거나 지루할 때의 표현일 수 있습니다. (7급 p.31)" },
+                { question: "마방에 들어가는 것은 위험한 행동이므로 무슨 일이 있어도 마방에 들어가면 안 된다.", answer: false, explanation: "말에게 다가갈 때는 규칙을 지켜 안전하게 접근해야 합니다. 말의 이름을 부르며 앞사선에서 천천히 다가가는 것이 좋습니다. (7급 p.14, 36)" },
+                { question: "말을 마방에 넣을 때, 사람은 마방에 들어가면 위험하니 문 앞에서 말이 스스로 들어가게 한다.", answer: false, explanation: "사람이 먼저 마방에 들어가 말의 얼굴이 문을 보도록 회전시킨 후 굴레를 벗겨야 안전합니다. (7급 p.39)" },
+                { question: "말 손질은 운동 전후에 실시하는데, 말의 건강 상태를 확인하고 피부질환 또는 부상 여부를 확인하는 목적으로 실시한다.", answer: true, explanation: "말 손질은 청결뿐만 아니라 말의 건강 상태를 점검하는 중요한 과정입니다. (7급 p.41)" },
+                { question: "말을 손질할 때 땀이 많이 생기는 얼굴 부위와 코, 귀, 생식기 주변은 깨끗하게 유지하기 위해 수건으로 세게 문질러 닦는다.", answer: false, explanation: "예민한 부위이므로 깨끗한 물수건으로 '부드럽게' 닦아주어야 합니다. (7급 p.42)" },
+                { question: "발굽 바닥에 끼어 있는 흙이나 똥, 깔짚 등 이물질은 질병을 유발할 수 있으므로 제거하는 것이 좋다.", answer: true, explanation: "발굽은 매일 청결하게 관리하여 부상과 질병을 예방해야 합니다. (7급 p.44)" },
+                { question: "일반적으로 안장을 올리는 순서는 '하프패드 올리기 → 패드 올리기 → 안장 올리기 → 복대 채우기' 이다.", answer: false, explanation: "올바른 순서는 '패드 올리기 → 하프패드 올리기 → 안장 올리기 → 복대 채우기' 입니다. (7급 p.47)" },
+                { question: "운동 후에는 굴레와 안장을 벗기고 말이 쉴 수 있도록 바로 마방에 넣는다.", answer: false, explanation: "운동 후에는 장비를 정리하고, 특히 재갈은 깨끗이 세척하여 보관해야 합니다. (7급 p.49)" },
+                { question: "리드로프를 잡을 때 남은 줄이 땅에 끌리지 않도록 손에 감아야 한다.", answer: false, explanation: "남은 줄을 손에 감으면 말이 갑자기 움직일 때 부상의 위험이 있으므로, 여러 겹으로 '접어서' 잡아야 합니다. (7급 p.55)" },
+                { question: "주부조에는 체중과 기좌, 박차 사용이 있다.", answer: false, explanation: "주부조는 기승자의 신체(체중, 다리, 손)를 통해 보내는 신호입니다. 박차는 채찍과 함께 '부부조'에 해당합니다. (7급 p.71-72)" },
+                { question: "처음부터 말에게 박차나 채찍을 강하게 사용해야 한다.", answer: false, explanation: "부조는 말의 성격과 반응에 따라 점진적으로 강도를 조절해야 하며, 처음부터 강하게 사용하는 것은 바람직하지 않습니다. (7급 p.72, 74)" },
+                { question: "복대는 말이 답답하지 않도록 느슨하게 조인다.", answer: false, explanation: "복대가 느슨하면 안장이 돌아가 사고의 위험이 있습니다. 손이 겨우 들어갈 정도로 단단히 조여야 합니다. (7급 p.61)" },
+                { question: "말 위에 기승할 때는 말의 오른쪽에서 기승대를 이용하여 오른다.", answer: false, explanation: "특별한 경우가 아니면 항상 말의 '왼쪽'에서 타고 내립니다. (7급 p.64)" },
+                { question: "평보는 분속 약 110m로, 말의 걸음걸이 중 가장 느리다.", answer: true, explanation: "평보는 4박자의 가장 느린 걸음걸이입니다. (7급 p.69)" },
+                { question: "평보는 3박자 걸음걸이다.", answer: false, explanation: "평보는 4개의 다리가 각각 따로 움직이는 '4박자' 걸음걸이입니다. (7급 p.69)" },
+                { question: "속보는 분속 약 220m로, 2박자 걸음걸이다.", answer: true, explanation: "속보는 대각선 방향의 다리가 함께 움직이는 2박자 걸음걸이입니다. (7급 p.70)" }
+            ],
+            6: [
+                { question: "말은 진화 과정에서 발가락 수가 증가했다.", answer: false, explanation: "말은 진화하면서 가운데 발가락이 발달하고 나머지 발가락 수가 '감소'했습니다. (6급 p.92)" },
+                { question: "최초의 말 조상인 에오히푸스는 오늘날의 말처럼 체고가 컸다.", answer: false, explanation: "에오히푸스의 체고는 약 25~50cm로 여우와 비슷한 크기였습니다. (6급 p.92)" },
+                { question: "마장마술 경기장 규격은 20m x 40m 이다.", answer: false, explanation: "마장마술 경기장 규격은 20m x 60m 입니다. (6급 p.95)" },
+                { question: "장애물 경기에서 장애물을 넘어뜨리면 4점 감점된다.", answer: true, explanation: "장애물 낙하 시 4점이 감점됩니다. (6급 p.98)" },
+                { question: "장애물 경기에서 선수가 낙마하면 감점 처리 후 경기를 계속할 수 있다.", answer: false, explanation: "선수가 낙마하면 '실권' 처리됩니다. (6급 p.98)" },
+                { question: "말에게 접근할 때 정면으로 다가가는 것이 가장 좋다.", answer: false, explanation: "말의 시야는 정면이 좁으므로, 놀라지 않도록 '앞사선'에서 접근하는 것이 안전합니다. (6급 p.102)" },
+                { question: "말의 시야는 약 350도로 매우 넓지만, 코 바로 앞과 엉덩이 바로 뒤는 사각지대이다.", answer: true, explanation: "이 때문에 말의 정면이나 바로 뒤에서 접근하는 것은 위험합니다. (6급 p.112)" },
+                { question: "말은 되새김질을 하는 반추동물이다.", answer: false, explanation: "말은 초식동물이지만 소나 양처럼 되새김질을 하지 않습니다. (6급 p.114)" },
+                { question: "토마토, 양파, 양배추는 말에게 좋은 간식이다.", answer: false, explanation: "이러한 채소들은 말에게 독성이 있거나 가스를 유발할 수 있어 주면 안 됩니다. (6급 p.115)" },
+                { question: "운동 후 땀에 젖은 말은 바로 마방에 넣어 쉬게 하는 것이 좋다.", answer: false, explanation: "운동 후에는 땀을 잘 말리고 정리해야 피부병을 예방할 수 있습니다. (6급 p.120)" },
+                { question: "복대를 조일 때는 한 번에 꽉 조여야 한다.", answer: false, explanation: "말이 불편함을 느끼지 않도록 여러 번에 걸쳐 점진적으로 조여주는 것이 좋습니다. (6급 p.123)" },
+                { question: "재갈굴레를 벗길 때는 고삐를 먼저 벗긴다.", answer: false, explanation: "말을 제어하기 위해 고삐는 가장 마지막에 벗깁니다. 턱끈, 코굴레, 머리끈 순서로 풉니다. (6급 p.125)" },
+                { question: "말을 후퇴시킬 때는 고삐를 강하게 뒤로 당겨야 한다.", answer: false, explanation: "고삐에 일정한 압력을 가하면서 기승자의 체중을 뒤로 보내고, 말이 한 걸음 물러서면 즉시 압력을 풀어주는 방식으로 훈련합니다. (6급 p.133)" },
+                { question: "기승대 없이 기승할 때는 말의 오른쪽에서 오른발을 먼저 등자에 건다.", answer: false, explanation: "기승은 항상 말의 왼쪽에서 하며, 왼발을 먼저 등자에 겁니다. (6급 p.138)" },
+                { question: "구보는 3박자 걸음걸이다.", answer: true, explanation: "구보는 '딱그닥, 딱그닥' 소리처럼 들리는 3박자 운동입니다. (6급 p.143)" },
+                { question: "전경자세는 장애물 비월 시 필요한 기본자세이다.", answer: true, explanation: "전경자세는 기승자의 무게 중심을 말의 움직임에 맞춰 앞으로 이동시켜 균형을 돕는 자세입니다. (6급 p.145)" },
+                { question: "지면 장애물 통과 시에는 속도를 최대한 높여 빠르게 지나가야 한다.", answer: false, explanation: "일정한 리듬과 속도를 유지하여 말이 침착하게 장애물을 넘을 수 있도록 유도하는 것이 중요합니다. (6급 p.146)" },
+                { question: "말을 끌고 갈 때, 말이 앞서가도록 뒤에서 따라가는 것이 안전하다.", answer: false, explanation: "말을 통제하고 위험 상황에 대처하기 위해, 핸들러는 말의 머리 옆에서 말을 이끌어야 합니다. (6급 p.149 심사내용 참조)" },
+                { question: "말은 학습능력이 낮아 훈련이 어렵다.", answer: false, explanation: "말은 긍정적 보상을 통해 학습하는 능력이 뛰어나며, 사람의 신호에 맞춰 훈련된 동작을 수행할 수 있습니다. (7급 p.26)" }
+            ]
+        };
+
+        let currentQuiz = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedLevel = 0;
+
+        const levelSelection = document.getElementById('level-selection');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+
+        function startQuiz(level) {
+            selectedLevel = level;
+            currentQuiz = quizData[level];
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            levelSelection.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            const question = currentQuiz[currentQuestionIndex];
+            document.getElementById('quiz-title').textContent = `🐴 ${selectedLevel}급 문제`;
+            document.getElementById('progress-text').textContent = `${currentQuestionIndex + 1} / ${currentQuiz.length}`;
+            document.getElementById('question-text').textContent = question.question;
+        }
+
+        function resetState() {
+            document.getElementById('result-popup').classList.add('hidden');
+            document.getElementById('explanation-box').classList.add('hidden');
+            document.getElementById('answer-buttons').classList.remove('hidden');
+        }
+
+        function checkAnswer(userAnswer) {
+            const question = currentQuiz[currentQuestionIndex];
+            const isCorrect = userAnswer === question.answer;
+
+            document.getElementById('answer-buttons').classList.add('hidden');
+            document.getElementById('result-popup').classList.remove('hidden');
+            const resultFeedback = document.getElementById('result-feedback');
+
+            if (isCorrect) {
+                score++;
+                resultFeedback.textContent = "정답입니다! 🎉";
+                resultFeedback.className = "p-4 rounded-lg mb-4 text-2xl font-bold bg-green-100 text-green-700";
+            } else {
+                resultFeedback.textContent = "오답입니다. 😥";
+                resultFeedback.className = "p-4 rounded-lg mb-4 text-2xl font-bold bg-red-100 text-red-700";
+                document.getElementById('explanation-box').classList.remove('hidden');
+                document.getElementById('explanation-text').textContent = question.explanation;
+            }
+
+            if(currentQuestionIndex === currentQuiz.length - 1) {
+                document.getElementById('next-button').textContent = "결과 보기";
+            } else {
+                document.getElementById('next-button').textContent = "다음 문제";
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuiz.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            document.getElementById('score-text').textContent = `${currentQuiz.length}문제 중 ${score}개를 맞혔습니다!`;
+            
+            const percentage = score / currentQuiz.length;
+            const trophy = document.getElementById('trophy');
+            if (percentage === 1) {
+                trophy.textContent = '🏆';
+            } else if (percentage >= 0.7) {
+                trophy.textContent = '🥇';
+            } else if (percentage >= 0.4) {
+                trophy.textContent = '🥈';
+            } else {
+                trophy.textContent = '🥉';
+            }
+        }
+
+        function restart() {
+            resultScreen.classList.add('hidden');
+            levelSelection.classList.remove('hidden');
+        }
+
+    </script>
+</body>
+</html>
